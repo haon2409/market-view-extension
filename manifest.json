@@ -4,18 +4,20 @@
   "version": "1.0",
   "description": "Cào dữ liệu VN-Index từ Investing.com",
   "permissions": ["storage"],
-  "host_permissions": ["https://www.investing.com/*"],
+  "host_permissions": ["https://vn.investing.com/*"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icon64.png"
+    "default_popup": "popup.html"   
   },
   "content_scripts": [
     {
-      "matches": ["https://www.investing.com/indices/vn*"],
+      "matches": ["https://vn.investing.com/indices/vn*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "icons": {
+    "64": "icon64.png"
+  }
 }

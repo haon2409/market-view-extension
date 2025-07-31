@@ -1,8 +1,8 @@
-const VN_INDEX_URL = "https://www.investing.com/indices/vn";
-const VN30_INDEX_URL = "https://www.investing.com/indices/vn-30";
-const DOW_JONES_URL = "https://www.investing.com/indices/us-30";
-const SP500_INDEX_URL = "https://www.investing.com/indices/us-spx-500";
-const NASDAQ_INDEX_URL = "https://www.investing.com/indices/nasdaq-composite";
+const VN_INDEX_URL = "https://vn.investing.com/indices/vn";
+const VN30_INDEX_URL = "https://vn.investing.com/indices/vn-30";                        
+const DOW_JONES_URL = "https://vn.investing.com/indices/us-30";
+const SP500_INDEX_URL = "https://vn.investing.com/indices/us-spx-500";
+const NASDAQ_INDEX_URL = "https://vn.investing.com/indices/nasdaq-composite";
 
 async function fetchIndexData(url, sendResponse) {
     // Giữ nguyên hàm này
@@ -16,7 +16,8 @@ async function fetchIndexData(url, sendResponse) {
         let priceMatch = html.match(/instrument-price-last">([\d,]+\.?\d*)</);        
         let changeMatch = html.match(/instrument-price-change">([-+]?(?:<!-- -->)?[\d,]+\.?\d*)</);                
         changeMatch = changeMatch ? changeMatch[1].replace('<!-- -->', '') : null;        
-        let rangeMatch = html.match(/Day&#x27;s Range<\/div>\s*<div.*?>\s*<span>([\d,]+\.\d+)<\/span>\s*<span>([\d,]+\.\d+)<\/span>/);
+        // let rangeMatch = html.match(/Day&#x27;s Range<\/div>\s*<div.*?>\s*<span>([\d,]+\.\d+)<\/span>\s*<span>([\d,]+\.\d+)<\/span>/);
+        let rangeMatch = html.match(/Biên độ ngày<\/div>\s*<div.*?>\s*<span>([\d,]+\.\d+)<\/span>\s*<span>([\d,]+\.\d+)<\/span>/);
 
         if (priceMatch && changeMatch) {
             let price = parseFloat(priceMatch[1].replace(/,/g, ""));
