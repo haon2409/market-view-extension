@@ -3,252 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VN-Index, VN 30 Index & More</title>
+    <title>Stock Watchlist</title>
     <style>
+        :root {
+            --bg-body: #f0f2f5;
+            --text-main: #212529;
+            --text-sub: #6c757d;
+            --shimmer-line: rgba(255, 255, 255, 0.5);
+        }
+    
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            width: 320px;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            width: 330px;
             margin: 0;
-            padding: 14px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            min-height: 400px; /* Tăng chiều cao tối thiểu để chứa tất cả section */
+            padding: 16px;
+            background-color: var(--bg-body);
+            color: var(--text-main);
         }
+    
+        /* FIX LỖI NGƯỢC HƯỚNG: Dùng đơn vị px thay vì % */
+        @keyframes shimmer {
+            0% {
+                background-position: -450px 0; /* Bắt đầu từ ngoài cùng bên trái */
+            }
+            100% {
+                background-position: 450px 0;  /* Kết thúc ở ngoài cùng bên phải */
+            }
+        }
+    
+        .loading-shimmer {
+            /* Đổi hướng linear-gradient để dải sáng nghiêng tự nhiên */
+            background-image: linear-gradient(110deg, 
+                rgba(255,255,255,0) 30%, 
+                var(--shimmer-line) 50%, 
+                rgba(255,255,255,0) 70%
+            ) !important;
+            
+            background-size: 450px 100% !important; /* Độ rộng dải quét lớn hơn thẻ (330px) */
+            background-repeat: no-repeat !important;
+            animation: shimmer 1.5s infinite linear !important;
+        }
+    
+        /* Ẩn nội dung khi loading */
+        .loading-shimmer .price-main,
+        .loading-shimmer .change-sub,
+        .loading-shimmer .low,
+        .loading-shimmer .high,
+        .loading-shimmer .price-marker {
+            visibility: hidden;
+        }
+    
+        /* FLOATING FLAT CARD */
         .index-section {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .index-section:hover {            
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    
+        .index-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
         }
-        .index {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
+    
+        /* MÀU SẮC ĐẬM ĐÀ */
+        .bg-white  { background-color: #ffffff !important; border: 1px solid #e0e0e0 !important; }
+        .bg-blue   { background-color: #adcfff !important; }
+        .bg-green  { background-color: #a2e9c1 !important; }
+        .bg-yellow { background-color: #ffe69c !important; }
+    
+        /* LAYOUT CONTENT */
+        .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            white-space: nowrap;
-            min-height: 20px;
+            margin-bottom: 4px;
         }
-        .index-title {
-            color: black;
+    
+        .title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .index-data {
-            position: relative;
-            display: inline-block;
-            min-width: 150px;
-            min-height: 16px;
-            overflow: hidden;
-            background: #f0f0f0;
+    
+        .price-main {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
-        .index-data.loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.5) 50%,
-                transparent 100%
-            );
-            animation: sweep 1.5s infinite ease-in-out;
+    
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
+    
+        .change-sub {
+            font-size: 13px;
+            font-weight: 600;
+        }
+    
+        .action-group {
+            display: flex;
+            gap: 6px;
+        }
+    
+        .color-select, .remove-btn {
+            border: none;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 12px;
+        }
+    
+        /* RANGE BAR SYSTEM */
         .range-container {
+            margin-top: 8px;
+            padding-top: 2px;
+        }
+    
+        .range-bar-wrapper {
+            height: 4px;
+            background: rgba(0,0,0,0.08);
+            border-radius: 2px;
             position: relative;
-            width: 100%;
-            margin: 10px 0;
+            margin-bottom: 6px;
         }
-        .range-bar {
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            position: relative;
-            overflow: visible;
-        }
-        .range-bar::before, .range-bar::after {
-            content: '';
-            position: absolute;
-            top: -3px;
-            width: 2px;
-            height: 12px;
-            background: #808080;
-            z-index: 1;
-        }
-        .range-bar::before {
-            left: 0;
-        }
-        .range-bar::after {
-            right: 0;
-        }
+    
         .price-marker {
             position: absolute;
-            top: -10px;
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 10px solid #808080;
+            top: -4px;
+            width: 2px;
+            height: 12px;
+            background: #000;
             transform: translateX(-50%);
-            transition: left 0.3s ease;
             z-index: 2;
         }
-        .index-section.loading .price-marker {
-            display: none;
-        }
+    
+        /* CAO/THẤP: ĐẬM, ĐEN, TO */
         .range-labels {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
-            color: #555;
-            margin-top: 6px;
-            font-weight: 500;
+            line-height: 1;
         }
-        .range-labels span {
-            background: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            position: relative;
-            display: inline-block;
-            min-width: 40px;
-            height: 16px;
-            overflow: hidden;
+    
+        .range-labels .low, 
+        .range-labels .high {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: #000000 !important;
         }
-        .range-labels span:empty {
-            font-size: 14px;
-            padding: 2px 8px;
+    
+        /* CONTROLS */
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
         }
-        .range-labels span:empty::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.5) 50%,
-                transparent 100%
-            );
-            animation: sweep 1.5s infinite ease-in-out;
+    
+        input {
+            flex: 1;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            outline: none;
         }
-        @keyframes sweep {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-        }
-        .index span:nth-child(2) {
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-        .index span[style*="color: green"] {
-            background: #e6ffe6;
-        }
-        .index span[style*="color: red"] {
-            background: #ffe6e6;
-        }
-        .index span[style*="color: black"] {
-            background: #f0f0f0;
+    
+        #add-btn {
+            padding: 10px 16px;
+            background: #1565C0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-  <!-- Section VN Index -->
-  <div class="index-section loading">
-      <div id="index" class="index">         
-          <span class="index-title" title="VN Index - Chỉ số chứng khoán của thị trường Việt Nam">VN Index:</span>
-          <span id="index-data" class="index-data loading"></span>
-      </div>
-      <div id="range-container" class="range-container">
-          <div id="range-bar" class="range-bar">
-              <div id="price-marker" class="price-marker"></div>
-          </div>
-          <div id="range-labels" class="range-labels">
-              <span id="range-low"></span>
-              <span id="range-high"></span>
-          </div>
-      </div>
-  </div>
-
-  <!-- Section VN30 Index -->
-  <div class="index-section loading">
-      <div id="vn30-index" class="index">
-        <span class="index-title" title="VN30 Index - Chỉ số 30 cổ phiếu lớn nhất trên sàn HOSE">VN30 Index:</span>
-          <span id="vn30-index-data" class="index-data loading"></span>
-      </div>
-      <div id="vn30-range-container" class="range-container">
-          <div id="vn30-range-bar" class="range-bar">
-              <div id="vn30-price-marker" class="price-marker"></div>
-          </div>
-          <div id="vn30-range-labels" class="range-labels">
-              <span id="vn30-range-low"></span>
-              <span id="vn30-range-high"></span>
-          </div>
-      </div>
-  </div>
-
-  <!-- Section Dow Jones -->
-  <div class="index-section loading">
-      <div id="dowjones-index" class="index">
-        <span class="index-title" title="Dow Jones - Chỉ số chứng khoán của Mỹ, đại diện cho 30 công ty lớn nhất">Dow Jones:</span>
-          <span id="dowjones-index-data" class="index-data loading"></span>
-      </div>
-      <div id="dowjones-range-container" class="range-container">
-          <div id="dowjones-range-bar" class="range-bar">
-              <div id="dowjones-price-marker" class="price-marker"></div>
-          </div>
-          <div id="dowjones-range-labels" class="range-labels">
-              <span id="dowjones-range-low"></span>
-              <span id="dowjones-range-high"></span>
-          </div>
-      </div>
-  </div>
-
-  <!-- Section S&P 500 -->
-  <div class="index-section loading">
-      <div id="sp500-index" class="index">
-        <span class="index-title" title="S&P 500 - Chỉ số gồm 500 công ty lớn nhất tại Mỹ">S&P 500:</span>
-          <span id="sp500-index-data" class="index-data loading"></span>
-      </div>
-      <div id="sp500-range-container" class="range-container">
-          <div id="sp500-range-bar" class="range-bar">
-              <div id="sp500-price-marker" class="price-marker"></div>
-          </div>
-          <div id="sp500-range-labels" class="range-labels">
-              <span id="sp500-range-low"></span>
-              <span id="sp500-range-high"></span>
-          </div>
-      </div>
-  </div>
-
-  <!-- Section NASDAQ -->
-  <div class="index-section loading">
-      <div id="nasdaq-index" class="index">
-        <span class="index-title" title="NASDAQ - Chỉ số chứng khoán đại diện cho các công ty công nghệ lớn tại Mỹ">NASDAQ:</span>
-          <span id="nasdaq-index-data" class="index-data loading"></span>
-      </div>
-      <div id="nasdaq-range-container" class="range-container">
-          <div id="nasdaq-range-bar" class="range-bar">
-              <div id="nasdaq-price-marker" class="price-marker"></div>
-          </div>
-          <div id="nasdaq-range-labels" class="range-labels">
-              <span id="nasdaq-range-low"></span>
-              <span id="nasdaq-range-high"></span>
-          </div>
-      </div>
-  </div>
-
-  <script src="popup.js"></script>
-  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'926d922a4f311371',t:'MTc0MzA2NDcwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'926eb45ca9276732',t:'MTc0MzA3NjU4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <div class="controls">
+        <input type="text" id="id-input" placeholder="Ví dụ: indices/vn-30">
+        <button id="add-btn">Thêm</button>
+    </div>
+    <div id="watchlist-container"></div>
+    <script src="popup.js"></script>
 </body>
 </html>
